@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能文章助手设置</title>
+    <!-- 链接到我们的CSS文件 -->
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+        <h1>智能文章助手设置</h1>
+        
+        <!-- 设置表单 -->
+        <form id="settingsForm">
+            <!-- 本地模型路径输入 -->
+            <div class="form-group">
+                <label for="localModelPath">本地模型路径:</label>
+                <input type="text" id="localModelPath" name="localModelPath" required>
+            </div>
+            
+            <!-- Obsidian路径输入 -->
+            <div class="form-group">
+                <label for="obsidianPath">Obsidian路径:</label>
+                <input type="text" id="obsidianPath" name="obsidianPath" required>
+            </div>
+            
+            <!-- 提交按钮 -->
+            <div class="form-group">
+                <button type="submit">保存设置</button>
+            </div>
+        </form>
+        
+        <!-- 状态消息显示区域 -->
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+
+    <!-- 链接到我们的JavaScript文件 -->
+    <script src="popup.js"></script>
+</body>
+</html>
+</html>

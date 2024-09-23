@@ -1,0 +1,9 @@
+{
+    "name": "com.example.ollama",
+    "description": "Ollama Local Model Integration",
+    "path": "E:\\Coding\\article assistant\\ollama_wrapper.bat",
+    "type": "stdio",
+    "allowed_origins": [
+      "chrome-extension://<pifpgieicjckhlekphhdcjgjdhijdceh>/"
+    ]
+  }
