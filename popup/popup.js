@@ -38,3 +38,17 @@ document.addEventListener('DOMContentLoaded', function() {
         statusMessage.className = 'status-message ' + type;
     }
 });
+
+
+document.getElementById('testDefaultModel').addEventListener('click', () => {
+    chrome.runtime.sendMessage({action: "testDefaultModel"}, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error(chrome.runtime.lastError);
+      } else if (response.error) {
+        console.error("测试失败:", response.error);
+      } else {
+        console.log("测试成功,响应:", response.result);
+        alert("测试成功,请查看控制台输出");
+      }
+    });
+  });
