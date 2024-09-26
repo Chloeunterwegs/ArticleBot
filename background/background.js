@@ -24,7 +24,7 @@ export function connectWebSocket() {
   };
 }
 
-export function runOllamaModel(content) {
+export function runOllamaModel(content, obsidianPath, title) {
   return new Promise((resolve, reject) => {
     if (!socket || socket.readyState !== WebSocket.OPEN) {
       reject(new Error('WebSocket 未连接'));
@@ -35,7 +35,9 @@ export function runOllamaModel(content) {
 
     const message = JSON.stringify({
       model: 'qwen2:7b',
-      prompt: content
+      prompt: content,
+      obsidianPath: obsidianPath,
+      title: title
     });
 
     socket.send(message);
@@ -106,16 +108,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "contentScriptLoaded") {
     console.log("内容脚本已加载,来自标签页:", sender.tab.id);
   } else if (message.action === "articleContent") {
-    sendToOllama(message.content)
-      .then(response => {
-        console.log("Ollama 处理结果:", response);
-        // 这里可以添加更多处理逻辑,如保存到 Obsidian 等
-        sendResponse({ success: true, result: response });
-      })
-      .catch(error => {
-        console.error("处理文章内容时出错:", error);
-        sendResponse({ success: false, error: error.message });
-      });
+    chrome.storage.sync.get(['obsidianPath'], function(result) {
+      const obsidianPath = result.obsidianPath;
+      sendToOllama(message.content, obsidianPath, message.title)
+        .then(response => {
+          console.log("Ollama 处理结果:", response);
+          sendResponse({ success: true, result: response });
+        })
+        .catch(error => {
+          console.error("处理文章内容时出错:", error);
+          sendResponse({ success: false, error: error.message });
+        });
+    });
     return true; // 保持消息通道开放
   }
 });

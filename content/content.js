@@ -37,12 +37,14 @@ function extractPageContent() {
 function processArticle() {
   const pageContent = extractPageContent();
   return new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage({ action: "articleContent", content: pageContent.content }, response => {
+    chrome.runtime.sendMessage({ 
+      action: "articleContent", 
+      content: pageContent.content,
+      title: document.title
+    }, response => {
       if (response.success) {
-        console.log("文章处理成功:", response.result);
         resolve(response.result);
       } else {
-        console.error("文章处理失败:", response.error);
         reject(new Error(response.error));
       }
     });

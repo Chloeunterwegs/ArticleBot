@@ -31,12 +31,12 @@ MD文档:
 }
 
 // 发送内容到 Ollama 服务
-export async function sendToOllama(content) {
+export async function sendToOllama(content, obsidianPath, title) {
   const processedContent = processPageContent(content);
   const prompt = generatePrompt(processedContent);
   
   try {
-    const response = await runOllamaModel(prompt);
+    const response = await runOllamaModel(prompt, obsidianPath, title);
     return response;
   } catch (error) {
     console.error('发送到 Ollama 服务时出错:', error);

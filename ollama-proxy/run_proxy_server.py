@@ -2,7 +2,7 @@ import os
 import subprocess
 
 # 设置目标目录
-target_directory = r"E:\ArticleBot\ollama-proxy"
+target_directory = r"E:\Coding\ArticleBot\ollama-proxy"
 
 # 切换到目标目录
 os.chdir(target_directory)

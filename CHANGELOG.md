@@ -1,5 +1,22 @@
 # 更新日志
 
+## [0.0.11] - 2024-09-27
+
+### 修复 011
+
+- 解决了 Obsidian 同步功能无响应的问题
+- 修复了 `background.js` 中 `sendToOllama` 函数参数传递不正确的问题
+- 更新了 `content.js` 中 `processArticle` 函数，正确传递文章标题
+
+### 更改 011
+
+- 优化了 `background.js` 中的消息处理逻辑
+- 改进了 `content-processor.js` 中的参数处理
+
+### 新增 011
+
+- 在 `content.js` 中添加了文章标题的提取和传递功能
+
 ## [0.0.10] - 2024-09-26
 
 ### 新增 010

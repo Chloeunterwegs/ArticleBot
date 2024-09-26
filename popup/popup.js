@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const statusMessage = document.getElementById('statusMessage');
     const modelNameSelect = document.getElementById('modelName');
     const obsidianPathInput = document.getElementById('obsidianPath');
+    const testDefaultModelButton = document.getElementById('testDefaultModel');
 
     // 加载保存的设置
     chrome.storage.sync.get(['modelName', 'obsidianPath'], function(result) {
@@ -33,22 +34,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    testDefaultModelButton.addEventListener('click', function() {
+        chrome.runtime.sendMessage({action: "testDefaultModel"}, function(response) {
+            if (chrome.runtime.lastError) {
+                showStatus('测试失败: ' + chrome.runtime.lastError.message, 'error');
+            } else if (response.error) {
+                showStatus('测试失败: ' + response.error, 'error');
+            } else {
+                showStatus('测试成功: ' + response.result, 'success');
+            }
+        });
+    });
+
     function showStatus(message, type) {
         statusMessage.textContent = message;
         statusMessage.className = 'status-message ' + type;
     }
 });
-
-
-document.getElementById('testDefaultModel').addEventListener('click', () => {
-    chrome.runtime.sendMessage({action: "testDefaultModel"}, (response) => {
-      if (chrome.runtime.lastError) {
-        console.error(chrome.runtime.lastError);
-      } else if (response.error) {
-        console.error("测试失败:", response.error);
-      } else {
-        console.log("测试成功,响应:", response.result);
-        alert("测试成功,请查看控制台输出");
-      }
-    });
-  });

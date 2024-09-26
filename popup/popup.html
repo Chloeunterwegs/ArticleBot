@@ -15,7 +15,8 @@
                 <label for="modelName">选择模型:</label>
                 <select id="modelName" name="modelName" required>
                     <option value="qwen2:7b">qwen2:7b (默认)</option>
-                    <!-- 未来可以在这里添加更多选项 -->
+                    <option value="llama3.1:8b">llama3.1:8b</option>
+                    <option value="mistral:7b">mistral:7b</option>
                 </select>
             </div>
             
@@ -26,9 +27,12 @@
             
             <div class="form-group">
                 <button type="submit">保存设置</button>
-                
             </div>
         </form>
+        
+        <div class="form-group">
+            <button id="testDefaultModel">测试默认模型</button>
+        </div>
         
         <div id="statusMessage" class="status-message"></div>
     </div>

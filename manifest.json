@@ -7,7 +7,8 @@
     "activeTab",
     "notifications",
     "scripting",
-    "storage"
+    "storage",
+    "contextMenus"
   ],
   "host_permissions": [
     "http://localhost:3000/",
@@ -31,5 +32,6 @@
       "128": "icons/icon128.png"
     },
     "default_title": "智能文章助手"
-  }
+  },
+  "options_page": "popup/popup.html"
 }

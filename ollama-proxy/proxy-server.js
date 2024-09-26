@@ -1,6 +1,8 @@
 import { WebSocketServer } from 'ws';
 import fetch from 'node-fetch';
 import http from 'http';
+import fs from 'fs/promises';
+import path from 'path';
 
 const wss = new WebSocketServer({ port: 3000 });
 
@@ -20,8 +22,6 @@ function checkOllamaHealth() {
 
 setInterval(checkOllamaHealth, 60000); // 每60秒检查一次
 
-// ... 其他代码保持不变 ...
-
 wss.on('connection', (ws) => {
   console.log('WebSocket 客户端已连接');
 
@@ -40,7 +40,7 @@ wss.on('connection', (ws) => {
         throw new Error('无效的消息格式');
       }
       
-      const { model, prompt } = data;
+      const { model, prompt, obsidianPath, title } = data;
       
       console.log(`处理消息: 模型=${model}, 内容长度=${prompt.length}`);
 
@@ -80,7 +80,27 @@ wss.on('connection', (ws) => {
         console.log('Ollama API 响应:', result);
         
         if (result.message && result.message.content) {
-          ws.send(JSON.stringify({ result: result.message.content }));
+          // 直接写入Obsidian
+          try {
+            if (!obsidianPath) {
+              throw new Error('Obsidian路径未提供');
+            }
+            const filePath = path.join(obsidianPath, `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`);
+            
+            await fs.writeFile(filePath, result.message.content);
+            console.log(`文件已成功写入Obsidian: ${filePath}`);
+            
+            ws.send(JSON.stringify({ 
+              result: result.message.content,
+              obsidianSync: { success: true, path: filePath }
+            }));
+          } catch (error) {
+            console.error('写入Obsidian失败:', error);
+            ws.send(JSON.stringify({ 
+              result: result.message.content,
+              obsidianSync: { success: false, error: error.message }
+            }));
+          }
         } else {
           throw new Error('未知的响应格式');
         }
