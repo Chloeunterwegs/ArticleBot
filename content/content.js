@@ -36,12 +36,17 @@ function extractPageContent() {
 
 function processArticle() {
   const pageContent = extractPageContent();
-  // 这里可以添加更多的处理逻辑
-  return Promise.resolve(pageContent);
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({ action: "articleContent", content: pageContent.content }, response => {
+      if (response.success) {
+        console.log("文章处理成功:", response.result);
+        resolve(response.result);
+      } else {
+        console.error("文章处理失败:", response.error);
+        reject(new Error(response.error));
+      }
+    });
+  });
 }
 
-// 立即初始化内容脚本
 initContentScript();
-
-// 通知background脚本内容脚本已加载
-chrome.runtime.sendMessage({action: "contentScriptLoaded"});
