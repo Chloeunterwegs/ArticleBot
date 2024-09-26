@@ -1,69 +1,80 @@
 # 智能文章助手
 
-智能文章助手是一个自动化处理文章的浏览器扩展，能够一键完成文章总结、标签生成、思维导图创建，并将结果同步到 Obsidian 中。
+自动化处理文章的浏览器扩展,一键完成总结、标签生成、思维导图创建,并同步到 Obsidian。
 
-## 功能特点
+## 功能
 
-- 使用本地大语言模型对当前页面文章进行智能总结
-- 自动为文章生成分类标签
-- 基于文章总结生成可视化的思维导图
-- 将文章链接、标签、总结内容和思维导图整合成 Markdown 文件
-- 一键同步Markdown文件到 Obsidian 笔记软件
+1. 使用本地大语言模型智能总结文章
+2. 自动生成分类标签
+3. 创建可视化思维导图
+4. 整合为 Markdown 文件
+5. 一键同步到 Obsidian
 
-## 安装说明
+## 安装
 
-1. 克隆或下载此仓库到本地
-2. 确保已安装 Python 和 Ollama
-3. 配置 `ollama_wrapper.py` 中的 `OLLAMA_PATH` 变量为你的 Ollama 可执行文件路径
-4. 打开 Chrome 浏览器，进入扩展管理页面 (chrome://extensions/)
-5. 启用"开发者模式"
-6. 点击"加载已解压的扩展程序"，选择本项目的目录
+1. 克隆仓库到本地
+2. 安装并运行 Ollama (`ollama serve`)
+3. 在 `ollama-proxy` 目录运行 `npm install` 和 `npm start`
+4. 在 Chrome 扩展管理页面加载解压的扩展程序
 
 ## 使用方法
 
-1. 在想要处理的文章页面，点击浏览器工具栏中的插件图标
-2. 等待处理完成，结果将自动同步到你的 Obsidian 笔记中
-3. 右键点击插件图标可以打开设置页面，配置使用的模型和 Obsidian 存储路径
+1. 确保 Ollama 和代理服务器运行中
+2. 在目标文章页面点击扩展图标
+3. 等待处理完成,结果自动同步到 Obsidian
+4. 右键点击图标可打开设置页面
 
-## 配置说明
+## 配置
 
-本插件需要配合本地大语言模型和 Obsidian 使用。请确保：
+1. 安装并配置 Ollama,下载所需模型
+2. 正确安装 Obsidian
+3. 在扩展设置中配置模型和 Obsidian 路径
 
-1. 已安装并配置好 Ollama
-2. Obsidian 已正确安装并设置
-3. 在插件的设置页面中正确配置使用的模型和 Obsidian 存储路径
+## 注意事项
 
-## 开发说明
+1. 通信: 扩展通过 WebSocket 与本地代理服务器通信
+2. 代理服务器: 运行 `node proxy-server.js`
+3. 依赖: 在 `ollama-proxy` 目录运行 `npm install`
+4. Ollama 运行顺序:
+   - 运行 `ollama serve`
+   - 启动 WebSocket 代理服务器
+   - 加载浏览器扩展
+5. 内容脚本: 扩展会自动尝试注入
+6. 错误处理: 增强了日志记录,便于调试
+7. 权限: 扩展需要 "scripting" 权限
+8. 兼容性: 确保 Chrome 支持 Manifest V3
+9. 健康检查: 代理服务器会定期检查Ollama服务的健康状态
+10. 消息格式: 确保发送给代理服务器的消息格式正确
+11. 响应处理: 代理服务器现在能更好地处理Ollama服务的响应
 
-本项目使用 vanilla JavaScript 开发，主要文件结构如下：
+## 开发
 
-- `manifest.json`: 插件配置文件
-- `popup/`: 包含设置页面相关文件
-- `background/`: 包含后台脚本
-- `content/`: 包含内容脚本
-- `lib/`: 包含第三方库文件
-- `ollama_wrapper.py`: Python 脚本，用于与 Ollama 通信
+- 使用 vanilla JavaScript
+- 主要文件: manifest.json, popup/, background/, content/, lib/, ollama-proxy/
+- 需要了解 Chrome 扩展开发、JavaScript、WebSocket 和 Ollama API
 
-要进行开发，你需要：
+## 测试
 
-1. 了解 Chrome 扩展开发基础
-2. 熟悉 JavaScript 编程
-3. 了解如何与本地应用程序通信（用于大语言模型和 Obsidian 同步）
-4. 基本的 Python 编程知识
+1. 确保 Ollama 和默认模型运行中
+2. 启动代理服务器
+3. 在不同类型网页上测试
+4. 验证内容提取、摘要生成和同步功能
+5. 测试设置页面
+6. 模拟错误情况
 
-## 贡献指南
+## 贡献
 
-欢迎提交 Issue 和 Pull Request 来改进这个项目。在提交 PR 之前，请确保你的代码符合我们的编码规范并通过了所有测试。
+欢迎提交 Issue 和 Pull Request。
+
+## 文档规范
+
+本项目的所有文档都遵循 [DOCUMENTATION_GUIDELINES.md](./DOCUMENTATION_GUIDELINES.md) 中定义的格式规则。请在创建或编辑文档时参考这些指南。
 
 ## 许可证
 
-本项目采用 MIT 许可证。详情请见 [LICENSE](LICENSE) 文件。
+MIT 许可证
 
 ## 联系方式
 
-如有任何问题或建议，欢迎通过以下方式联系我们：
-
 - 邮箱: <unterwegshe@gmail.com>
 - GitHub Issues: [提交 Issue](https://github.com/yourusername/smart-article-assistant/issues)
-
-感谢使用智能文章助手！
