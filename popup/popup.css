@@ -1,53 +1,102 @@
+@font-face {
+    font-family: 'CustomFont';
+    src: url('../汇文明朝体.otf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 body {
+    font-family: 'CustomFont', sans-serif;
+    background: linear-gradient(135deg, #1a6840 0%, #0d2b1a 100%);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+}
+
+.container {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     width: 300px;
-    padding: 10px;
-    font-family: Arial, sans-serif;
-}
-
-h1 {
-    font-size: 18px;
-    margin-bottom: 15px;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-input[type="text"] {
-    width: 100%;
-    padding: 5px;
-}
-
-button {
-    width: 100%;
-    padding: 8px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #45a049;
-}
-
-.status-message {
-    margin-top: 10px;
-    padding: 5px;
     text-align: center;
 }
 
-.status-message.success {
-    background-color: #dff0d8;
-    color: #3c763d;
+.title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #4a4a4a;
 }
 
-.status-message.error {
-    background-color: #f2dede;
-    color: #a94442;
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+label {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: #666;
+}
+
+select, input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+    font-family: 'CustomFont', sans-serif;
+}
+
+select:focus, input:focus {
+    outline: none;
+    border-color: #1a6840;
+    background-color: rgba(26, 104, 64, 0.1);
+}
+
+select:hover {
+    background-color: rgba(26, 104, 64, 0.05);
+}
+
+.submit-btn {
+    background-color: #1a6840;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: 'CustomFont', sans-serif;
+}
+
+.submit-btn:hover {
+    background-color: #1a6840;
+}
+
+.status-message {
+    margin-top: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.status-message.show {
+    opacity: 1;
 }

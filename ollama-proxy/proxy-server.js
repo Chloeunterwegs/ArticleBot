@@ -40,7 +40,7 @@ wss.on('connection', (ws) => {
         throw new Error('无效的消息格式');
       }
       
-      const { model, prompt, obsidianPath, title } = data;
+      const { model, prompt, obsidianPath, title, url } = data;
       
       console.log(`处理消息: 模型=${model}, 内容长度=${prompt.length}`);
 
@@ -80,6 +80,9 @@ wss.on('connection', (ws) => {
         console.log('Ollama API 响应:', result);
         
         if (result.message && result.message.content) {
+          // 在内容开头添加文章链接
+          const contentWithUrl = `原文链接: ${url}\n\n${result.message.content}`;
+          
           // 直接写入Obsidian
           try {
             if (!obsidianPath) {
@@ -87,17 +90,17 @@ wss.on('connection', (ws) => {
             }
             const filePath = path.join(obsidianPath, `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`);
             
-            await fs.writeFile(filePath, result.message.content);
+            await fs.writeFile(filePath, contentWithUrl);
             console.log(`文件已成功写入Obsidian: ${filePath}`);
             
             ws.send(JSON.stringify({ 
-              result: result.message.content,
+              result: contentWithUrl,
               obsidianSync: { success: true, path: filePath }
             }));
           } catch (error) {
             console.error('写入Obsidian失败:', error);
             ws.send(JSON.stringify({ 
-              result: result.message.content,
+              result: contentWithUrl,
               obsidianSync: { success: false, error: error.message }
             }));
           }
@@ -113,10 +116,6 @@ wss.on('connection', (ws) => {
       console.error('处理消息时出错:', error);
       ws.send(JSON.stringify({ error: error.message }));
     }
-  });
-
-  ws.on('close', () => {
-    console.log('WebSocket 客户端已断开连接');
   });
 });
 

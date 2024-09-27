@@ -30,6 +30,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 showStatus('保存设置时出错: ' + chrome.runtime.lastError.message, 'error');
             } else {
                 showStatus('设置已保存', 'success');
+                statusMessage.textContent = '设置已保存';
+                statusMessage.classList.add('show');
             }
         });
     });
@@ -50,4 +52,9 @@ document.addEventListener('DOMContentLoaded', function() {
         statusMessage.textContent = message;
         statusMessage.className = 'status-message ' + type;
     }
+
+    // 3秒后隐藏消息
+    setTimeout(() => {
+        statusMessage.classList.remove('show');
+    }, 3000);
 });

@@ -5,34 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>智能文章助手设置</title>
     <link rel="stylesheet" href="popup.css">
+    <!-- 移除这行 Google Fonts 链接 -->
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet"> -->
 </head>
 <body>
     <div class="container">
-        <h1>智能文章助手设置</h1>
+        <h1 class="title">智能文章助手</h1>
         
-        <form id="settingsForm">
+        <form id="settingsForm" class="settings-form">
             <div class="form-group">
-                <label for="modelName">选择模型:</label>
+                <label for="modelName">选择模型</label>
                 <select id="modelName" name="modelName" required>
                     <option value="qwen2:7b">qwen2:7b (默认)</option>
+                    <option value="qwen2.5:14b">qwen2.5:14b</option>
+                    <option value="qwen2.5:32b">qwen2.5:32b</option>
                     <option value="llama3.1:8b">llama3.1:8b</option>
-                    <option value="mistral:7b">mistral:7b</option>
                 </select>
             </div>
             
             <div class="form-group">
-                <label for="obsidianPath">Obsidian 存储路径:</label>
+                <label for="obsidianPath">Obsidian 存储路径</label>
                 <input type="text" id="obsidianPath" name="obsidianPath" required>
             </div>
             
-            <div class="form-group">
-                <button type="submit">保存设置</button>
-            </div>
+            <button type="submit" class="submit-btn">保存设置</button>
         </form>
-        
-        <div class="form-group">
-            <button id="testDefaultModel">测试默认模型</button>
-        </div>
         
         <div id="statusMessage" class="status-message"></div>
     </div>

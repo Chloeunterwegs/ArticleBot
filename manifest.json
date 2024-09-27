@@ -27,11 +27,17 @@
   ],
   "action": {
     "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
+      "16": "/icons/icon16.png",
+      "48": "/icons/icon48.png",
+      "128": "/icons/icon128.png"
     },
     "default_title": "智能文章助手"
   },
-  "options_page": "popup/popup.html"
+  "options_page": "popup/popup.html",
+  "web_accessible_resources": [
+    {
+      "resources": ["汇文明朝体.otf"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
