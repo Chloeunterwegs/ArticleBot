@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 加载保存的设置
     chrome.storage.sync.get(['modelName', 'obsidianPath'], function(result) {
-        modelNameSelect.value = result.modelName || 'qwen2:7b';
+        modelNameSelect.value = result.modelName || 'llama3.1:8b';
         obsidianPathInput.value = result.obsidianPath || '';
     });
 

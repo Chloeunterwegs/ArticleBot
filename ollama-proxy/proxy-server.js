@@ -80,32 +80,48 @@ wss.on('connection', (ws) => {
         console.log('Ollama API 响应:', result);
         
         if (result.message && result.message.content) {
-          // 在内容开头添加文章链接
-          const contentWithUrl = `原文链接: ${url}\n\n${result.message.content}`;
+          const ollamaResponse = result.message.content.trim();
+          console.log('Ollama 完整响应:', ollamaResponse);
           
-          // 直接写入Obsidian
-          try {
-            if (!obsidianPath) {
-              throw new Error('Obsidian路径未提供');
-            }
-            const filePath = path.join(obsidianPath, `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`);
+          // 检查是否包含所需的所有部分，并且格式正确
+          if (ollamaResponse.includes("文章类型:") &&
+              ollamaResponse.includes("文章总结:") && 
+              ollamaResponse.includes("标签:") && 
+              ollamaResponse.includes("亮点内容:") && 
+              ollamaResponse.includes("主要涉及的人物、作品或概念:")) {
             
-            await fs.writeFile(filePath, contentWithUrl);
-            console.log(`文件已成功写入Obsidian: ${filePath}`);
+            // 在响应开头添加原文链接和文章标题
+            const processedResponse = `原文链接: ${url}\n文章标题: ${title}\n\n${ollamaResponse}`;
             
-            ws.send(JSON.stringify({ 
-              result: contentWithUrl,
-              obsidianSync: { success: true, path: filePath }
-            }));
-          } catch (error) {
-            console.error('写入Obsidian失败:', error);
-            ws.send(JSON.stringify({ 
-              result: contentWithUrl,
-              obsidianSync: { success: false, error: error.message }
-            }));
+            // 直接发送处理后的 Ollama 响应
+            ws.send(JSON.stringify({ result: processedResponse }));
+            
+            // 处理文件名
+            const safeTitle = title
+              .replace(/[<>:"/\\|?*]/g, '') // 移除不允许的字符
+              .replace(/\s+/g, '_')         // 将空格替换为下划线
+              .replace(/[^\x00-\x7F]/g, '') // 移除非ASCII字符
+              .trim();
+            
+            // 如果处理后的标题为空，使用时间戳作为文件名
+            const fileName = safeTitle || `article_${Date.now()}`;
+            
+            // 限制文件名长度
+            const maxLength = 255; // 大多数文件系统的最大文件名长度
+            const truncatedFileName = fileName.length > maxLength ? fileName.slice(0, maxLength) : fileName;
+            
+            // 将完整响应写入 Obsidian 文件，包括原始标题
+            const contentToWrite = `# ${title}\n\n${processedResponse}`;
+            const obsidianFilePath = path.join(obsidianPath, `${truncatedFileName}.md`);
+            await fs.writeFile(obsidianFilePath, contentToWrite, 'utf8');
+            console.log(`内容已写入 Obsidian 文件: ${obsidianFilePath}`);
+          } else {
+            console.error('Ollama 响应格式不符合预期');
+            ws.send(JSON.stringify({ error: 'Ollama 响应格式不符合预期' }));
           }
         } else {
-          throw new Error('未知的响应格式');
+          console.error('未知的响应格式');
+          ws.send(JSON.stringify({ error: '未知的响应格式' }));
         }
       } catch (jsonError) {
         console.error('解析 Ollama API 响应时发生错误:', jsonError);

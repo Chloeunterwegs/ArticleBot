@@ -24,7 +24,7 @@ export function connectWebSocket() {
   };
 }
 
-export function runOllamaModel(content, obsidianPath, title) {
+export function runOllamaModel(content, obsidianPath, title, url) {
   return new Promise((resolve, reject) => {
     if (!socket || socket.readyState !== WebSocket.OPEN) {
       reject(new Error('WebSocket 未连接'));
@@ -32,12 +32,14 @@ export function runOllamaModel(content, obsidianPath, title) {
     }
 
     console.log(`尝试运行 Ollama 模型 qwen2:7b,内容长度: ${content.length}`);
+    console.log('传递的 URL:', url); // 添加这行来检查 URL
 
     const message = JSON.stringify({
       model: 'qwen2:7b',
       prompt: content,
       obsidianPath: obsidianPath,
-      title: title
+      title: title,
+      url: url
     });
 
     socket.send(message);
@@ -50,7 +52,7 @@ export function runOllamaModel(content, obsidianPath, title) {
           console.error('Ollama 响应错误:', response.error);
           reject(new Error(response.error));
         } else {
-          console.log('Ollama 响应成功,结果长度:', response.result.length);
+          console.log('Ollama 完整响应:', response.result);
           resolve(response.result);
         }
       } catch (error) {
@@ -105,12 +107,11 @@ chrome.action.onClicked.addListener((tab) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === "contentScriptLoaded") {
-    console.log("内容脚本已加载,来自标签页:", sender.tab.id);
-  } else if (message.action === "articleContent") {
+  if (message.action === "articleContent") {
     chrome.storage.sync.get(['obsidianPath'], function(result) {
       const obsidianPath = result.obsidianPath;
-      sendToOllama(message.content, obsidianPath, message.title)
+      console.log("接收到的标题:", message.title);
+      sendToOllama(message.content, obsidianPath, message.title, message.url)
         .then(response => {
           console.log("Ollama 处理结果:", response);
           sendResponse({ success: true, result: response });
@@ -120,6 +121,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           sendResponse({ success: false, error: error.message });
         });
     });
-    return true; // 保持消息通道开放
+    return true;
   }
 });

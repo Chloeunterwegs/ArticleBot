@@ -19,11 +19,21 @@ function processPageContent(content) {
  * @returns {Promise<string>} Ollama 服务的响应
  */
 export async function sendToOllama(content, obsidianPath, title, url) {
+  console.log('sendToOllama 接收到的内容:', { title, url, contentLength: content.length });
   const processedContent = processPageContent(content);
-  const prompt = generatePrompt(processedContent, url);
+  const prompt = generatePrompt(processedContent, url, title);
   
+  console.log('生成的 prompt:', prompt);
+
   try {
     const response = await runOllamaModel(prompt, obsidianPath, title, url);
+    console.log('Ollama 返回的原始响应:', response);
+    
+    // 验证 Ollama 的响应
+    if (!validateOllamaResponse(response, title, processedContent)) {
+      console.warn('Ollama 响应验证失败，但仍继续处理');
+    }
+    
     return response;
   } catch (error) {
     console.error('发送到 Ollama 服务时出错:', error);
@@ -35,42 +45,74 @@ export async function sendToOllama(content, obsidianPath, title, url) {
  * 生成发送给 Ollama 的 prompt
  * @param {string} content - 处理后的页面内容
  * @param {string} url - 页面 URL
+ * @param {string} title - 页面标题
  * @returns {string} 生成的 prompt
  */
-function generatePrompt(content, url) {
-  return `请对以下文章进行分析与总结。如果文章不是中文，请先将其翻译成中文。完成以下任务:
-a) 对文章进行总结
-b) 生成三个标签
-c) 提炼三个亮点事件
-d) 识别三个涉及的主要人物或物品
-e) 将总结内容转化为可生成markmap的markdown格式
+function generatePrompt(content, url, title) {
+  const cleanContent = removeHeaderFooter(content);
+  
+  return `${cleanContent}
 
+请根据以上内容,严格按照下面的格式用中文回答。请确保回答完整,不要省略任何部分,并且内容必须与原文相符:
+
+原文标题: ${title}
 文章链接: ${url}
-${content}
+文章标题：[填写文章标题]
 
-标签应该能概括文章的主题或关键词。亮点事件是文章中最引人注目或最重要的事件。涉及的人或物应该是文章中频繁提到或起重要作用的实体。
+文章类型: [填写文章类型]
 
-请按以下格式提供你的分析结果:
-
-文章链接: ${url}
-文章总结: [在这里插入总结]
+文章总结:
+[300字左右的中文总结]
 
 标签: 
-1. [标签1]
-2. [标签2]
-3. [标签3]
+1. [标签1：领域标签]
+2. [标签2：行业标签]
+3. [标签3：主题标签]
 
-亮点事件:
-1. [事件1]
-2. [事件2]
-3. [事件3]
+亮点内容:
+1. [重点1：有趣的有价值的重要的]
+2. [重点2：有趣的有价值的重要的]
+3. [重点3：有趣的有价值的重要的]
 
-主要涉及的人或物:
-1. [人或物1]
-2. [人或物2]
-3. [人或物3]
+主要涉及的人物、作品或概念:
+1. [人物、作品或概念1]
+2. [人物、作品或概念2]
+3. [人物、作品或概念3]
 
-Markmap格式的总结:
-[在这里提供Markmap的md文档]`;
+请严格按照上述格式回答,确保包含所有部分,不要添加任何额外的解释或内容。请再次确认你的回答与原文内容相符。`;
 }
 
+function removeHeaderFooter(content) {
+  // 这里实现移除 header 和 footer 的逻辑
+  // 可以使用正则表达式或其他方法来识别和移除不必要的内容
+  // 这里只是一个简单的示例，您可能需要根据实际情况调整
+  const lines = content.split('\n');
+  const startIndex = lines.findIndex(line => line.trim().length > 0);
+  const endIndex = lines.reverse().findIndex(line => line.trim().length > 0);
+  return lines.slice(startIndex, -endIndex).join('\n');
+}
+
+// 修改验证函数
+function validateOllamaResponse(response, originalTitle, originalContent) {
+  const responseContent = response.toLowerCase();
+  const originalTitleLower = originalTitle.toLowerCase();
+  const originalContentLower = originalContent.toLowerCase();
+
+  // 检查标题
+  const titleMatch = originalTitleLower.split(' ').some(word => responseContent.includes(word));
+
+  // 检查内容
+  const contentWords = originalContentLower.split(/\s+/).filter(word => word.length > 3);
+  const contentMatchCount = contentWords.filter(word => responseContent.includes(word)).length;
+  const contentMatchRatio = contentMatchCount / contentWords.length;
+
+  console.log('验证结果:', {
+    titleMatch,
+    contentMatchRatio,
+    contentMatchCount,
+    totalContentWords: contentWords.length
+  });
+
+  // 放宽验证条件
+  return titleMatch && contentMatchRatio > 0.1; // 只要有 10% 的内容匹配就认为是有效的
+}
