@@ -1,14 +1,13 @@
 {
   "manifest_version": 3,
   "name": "智能文章助手",
-  "version": "0.0.3",
-  "description": "一键完成文章总结、标签生成、思维导图创建,并同步到Obsidian",
+  "version": "0.0.6",
+  "description": "一键完成文章总结、标签生成、并同步到Obsidian",
   "permissions": [
     "activeTab",
-    "notifications",
     "scripting",
     "storage",
-    "contextMenus"
+    "notifications"
   ],
   "host_permissions": [
     "http://localhost:3000/",
@@ -39,5 +38,21 @@
       "resources": ["汇文明朝体.otf"],
       "matches": ["<all_urls>"]
     }
-  ]
+  ],
+  "commands": {
+    "stop_processing": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+W",
+        "mac": "Command+Shift+W"
+      },
+      "description": "停止处理标签页"
+    },
+    "process_all_tabs": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Q",
+        "mac": "Command+Shift+Q"
+      },
+      "description": "处理所有打开的标签页"
+    }
+  }
 }

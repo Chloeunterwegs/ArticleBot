@@ -109,6 +109,9 @@ wss.on('connection', (ws) => {
           const obsidianFilePath = path.join(obsidianPath, `${truncatedFileName}.md`);
           await fs.writeFile(obsidianFilePath, contentToWrite, 'utf8');
           console.log(`内容已写入 Obsidian 文件: ${obsidianFilePath}`);
+
+          // 发送写入完成的通知
+          ws.send(JSON.stringify({ type: 'writeComplete', message: '写入完毕', filePath: obsidianFilePath }));
         } else {
           console.warn('Ollama 响应格式不符合预期');
           ws.send(JSON.stringify({ error: 'Ollama 响应格式不符合预期' }));

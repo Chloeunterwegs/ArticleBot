@@ -29,8 +29,10 @@ export async function sendToOllama(content, obsidianPath, title, url) {
     const response = await runOllamaModel(prompt, obsidianPath, title, url);
     console.log('Ollama 返回的原始响应:', response);
     
-    // 直接返回 Ollama 的响应,不进行额外的验证或处理
-    return response;
+    // 添加处理逻辑
+    const processedResponse = ensureResponseFormat(response, url, title);
+    
+    return processedResponse;
   } catch (error) {
     console.error('发送到 Ollama 服务时出错:', error);
     throw error;
@@ -47,12 +49,18 @@ export async function sendToOllama(content, obsidianPath, title, url) {
 function generatePrompt(content, url, title) {
   const cleanContent = removeHeaderFooter(content);
   
-  return `${cleanContent}
-
-请根据以上内容，严格按照下面的格式用中文回答。请确保回答完整，不要省略任何部分，并且内容必须与原文相符：
+  return `
+请根据以下内容,严格按照指定格式用中文回答。确保回答完整,不要省略任何部分,内容必须与原文相符,并且必须包含原文链接:
 
 原文标题: ${title}
-文章链接: ${url}
+原文链接: ${url}
+
+${cleanContent}
+
+请按照以下格式回答,确保包含原文链接:
+
+原文标题: ${title}
+原文链接: ${url}
 
 文章标题：[填写文章标题]
 文章类型: [填写文章类型]
@@ -66,9 +74,9 @@ function generatePrompt(content, url, title) {
 3. [标签3：填写主题标签]
 
 亮点内容:
-1. [重点1：有价值的，附上原文案例]
-2. [重点2：反直觉的，附上原文案例]
-3. [重点3：有洞见的，附上原文案例]
+1. [重点1：有价值的,附上原文案例]
+2. [重点2：反直觉的,附上原文案例]
+3. [重点3：有洞见的,附上原文案例]
 
 主要涉及的人物、作品或概念:
 1. [人物、作品或概念1]
@@ -81,7 +89,7 @@ function generatePrompt(content, url, title) {
 3. [可发散选题3：创作病毒式传播内容的角度]
 4. [可发散选题4：科技与文化结合的角度]
 
-请严格按照上述格式回答，确保包含所有部分，不要添加任何额外的解释或内容。请再次确认你的回答与原文内容相符。`;
+请再次确认你的回答包含原文链接，并严格按照上述格式回答，不要添加任何额外的解释或内容。`;
 }
 
 function removeHeaderFooter(content) {
@@ -92,4 +100,24 @@ function removeHeaderFooter(content) {
   const startIndex = lines.findIndex(line => line.trim().length > 0);
   const endIndex = lines.reverse().findIndex(line => line.trim().length > 0);
   return lines.slice(startIndex, -endIndex).join('\n');
+}
+
+function ensureResponseFormat(response, url, title) {
+  let processedResponse = response;
+
+  // 确保原文链接存在
+  if (!processedResponse.includes('原文链接:')) {
+    processedResponse = `原文标题: ${title}\n原文链接: ${url}\n\n${processedResponse}`;
+  }
+
+  // 如果原文链接不在正确的位置,尝试移动它
+  const lines = processedResponse.split('\n');
+  const linkIndex = lines.findIndex(line => line.startsWith('原文链接:'));
+  if (linkIndex > 1) {
+    const linkLine = lines.splice(linkIndex, 1)[0];
+    lines.splice(1, 0, linkLine);
+    processedResponse = lines.join('\n');
+  }
+
+  return processedResponse;
 }

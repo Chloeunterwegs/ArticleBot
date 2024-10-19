@@ -1,7 +1,7 @@
 @echo off
 
 echo Starting Ollama Proxy service...
-cd /d E:\ArticleBot\ollama-proxy
+cd /d E:\Coding\ArticleBot\ollama-proxy
 start "" node proxy-server.js
 
 echo Starting Ollama service...

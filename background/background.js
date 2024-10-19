@@ -1,4 +1,5 @@
 import { sendToOllama } from './content-processor.js';
+import { startTabProcessing, onTabProcessed, stopTabProcessing, isProcessingMultipleTabs } from './tab-processor.js';
 
 let socket;
 
@@ -32,14 +33,14 @@ export function runOllamaModel(content, obsidianPath, title, url) {
     }
 
     console.log(`尝试运行 Ollama 模型 qwen2:7b,内容长度: ${content.length}`);
-    console.log('传递的 URL:', url || 'https://example.com'); // 提供默认URL
+    console.log('传递的 URL:', url || 'https://example.com');
 
     const message = JSON.stringify({
       model: 'qwen2:7b',
       prompt: content,
       obsidianPath: obsidianPath,
       title: title,
-      url: url || 'https://example.com' // 使用默认URL
+      url: url || 'https://example.com'
     });
 
     socket.send(message);
@@ -51,6 +52,9 @@ export function runOllamaModel(content, obsidianPath, title, url) {
         if (response.error) {
           console.error('Ollama 响应错误:', response.error);
           reject(new Error(response.error));
+        } else if (response.type === 'writeComplete') {
+          console.log('写入 Obsidian 完成:', response.message);
+          resolve(response.result);
         } else {
           console.log('Ollama 完整响应:', response.result);
           resolve(response.result);
@@ -93,6 +97,7 @@ export function testOllamaService(tabId) {
 文章内容: 这是一个测试内容。
 
 请按照以下格式回答:
+文章链接：[链接]
 文章类型: [类型]
 文章总结: [总结]
 标签: [标签1], [标签2], [标签3]
@@ -104,6 +109,11 @@ export function testOllamaService(tabId) {
 1. [概念1]
 2. [概念2]
 3. [概念3]
+可发散内容：
+1. [可发散内容1]
+2. [可发散内容2]
+3. [可发散内容3]
+4. [可发散内容4]
 `;
   runOllamaModel(testPrompt, "/test/path", "测试标题", "https://example.com")
     .then((response) => {
@@ -123,9 +133,24 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.action.onClicked.addListener((tab) => {
-  console.log("扩展图标被点击,开始处理文章");
-  injectContentScript(tab.id);
+  console.log("扩展图标被点击,开始处理当前标签页");
+  processCurrentTab();
 });
+
+// 添加这个新函数
+function processCurrentTab() {
+  chrome.windows.getCurrent({populate: true}, (window) => {
+    const activeTab = window.tabs.find(tab => tab.active);
+    if (activeTab) {
+      chrome.storage.sync.get(['obsidianPath'], function(result) {
+        const obsidianPath = result.obsidianPath;
+        injectContentScript(activeTab.id);
+      });
+    } else {
+      console.error("未找到当前活动标签页");
+    }
+  });
+}
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "articleContent") {
@@ -135,13 +160,46 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendToOllama(message.content, obsidianPath, message.title, message.url)
         .then(response => {
           console.log("Ollama 处理结果:", response);
+          // 只在处理单个标签页时显示通知
+          if (!isProcessingMultipleTabs()) {
+            chrome.notifications.create({
+              type: 'basic',
+              iconUrl: '/icons/icon128.png',
+              title: '智能文章助手',
+              message: '文章处理完毕,已写入 Obsidian'
+            });
+          }
           sendResponse({ success: true, result: response });
+          onTabProcessed(sender.tab.id);
         })
         .catch(error => {
           console.error("处理文章内容时出错:", error);
           sendResponse({ success: false, error: error.message });
+          onTabProcessed(sender.tab.id);
         });
     });
     return true;
+  }
+});
+
+// 可以添加一个停止处理的命令
+chrome.commands.onCommand.addListener((command) => {
+  try {
+    if (command === "stop_processing") {
+      stopTabProcessing();
+    } else if (command === "process_all_tabs") {
+      console.log("开始处理所有标签页");
+      chrome.windows.getCurrent({populate: true}, (window) => {
+        startTabProcessing(window.tabs);
+      });
+    }
+  } catch (error) {
+    console.error("执行命令时发生错误:", error);
+    chrome.notifications.create({
+      type: 'basic',
+      iconUrl: '/icons/icon128.png',
+      title: '智能文章助手',
+      message: '处理标签页时发生错误,请稍后重试'
+    });
   }
 });
