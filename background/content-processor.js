@@ -29,11 +29,7 @@ export async function sendToOllama(content, obsidianPath, title, url) {
     const response = await runOllamaModel(prompt, obsidianPath, title, url);
     console.log('Ollama 返回的原始响应:', response);
     
-    // 验证 Ollama 的响应
-    if (!validateOllamaResponse(response, title, processedContent)) {
-      console.warn('Ollama 响应验证失败，但仍继续处理');
-    }
-    
+    // 直接返回 Ollama 的响应,不进行额外的验证或处理
     return response;
   } catch (error) {
     console.error('发送到 Ollama 服务时出错:', error);
@@ -53,33 +49,39 @@ function generatePrompt(content, url, title) {
   
   return `${cleanContent}
 
-请根据以上内容,严格按照下面的格式用中文回答。请确保回答完整,不要省略任何部分,并且内容必须与原文相符:
+请根据以上内容，严格按照下面的格式用中文回答。请确保回答完整，不要省略任何部分，并且内容必须与原文相符：
 
 原文标题: ${title}
 文章链接: ${url}
-文章标题：[填写文章标题]
 
+文章标题：[填写文章标题]
 文章类型: [填写文章类型]
 
 文章总结:
 [300字左右的中文总结]
 
 标签: 
-1. [标签1：领域标签]
-2. [标签2：行业标签]
-3. [标签3：主题标签]
+1. [标签1：填写领域标签]
+2. [标签2：填写行业标签]
+3. [标签3：填写主题标签]
 
 亮点内容:
-1. [重点1：有趣的有价值的重要的]
-2. [重点2：有趣的有价值的重要的]
-3. [重点3：有趣的有价值的重要的]
+1. [重点1：有价值的，附上原文案例]
+2. [重点2：反直觉的，附上原文案例]
+3. [重点3：有洞见的，附上原文案例]
 
 主要涉及的人物、作品或概念:
 1. [人物、作品或概念1]
 2. [人物、作品或概念2]
 3. [人物、作品或概念3]
 
-请严格按照上述格式回答,确保包含所有部分,不要添加任何额外的解释或内容。请再次确认你的回答与原文内容相符。`;
+文章可发散内容：
+1. [可发散选题1：反常识的角度]
+2. [可发散选题2：批判性思考的角度]
+3. [可发散选题3：创作病毒式传播内容的角度]
+4. [可发散选题4：科技与文化结合的角度]
+
+请严格按照上述格式回答，确保包含所有部分，不要添加任何额外的解释或内容。请再次确认你的回答与原文内容相符。`;
 }
 
 function removeHeaderFooter(content) {
@@ -90,29 +92,4 @@ function removeHeaderFooter(content) {
   const startIndex = lines.findIndex(line => line.trim().length > 0);
   const endIndex = lines.reverse().findIndex(line => line.trim().length > 0);
   return lines.slice(startIndex, -endIndex).join('\n');
-}
-
-// 修改验证函数
-function validateOllamaResponse(response, originalTitle, originalContent) {
-  const responseContent = response.toLowerCase();
-  const originalTitleLower = originalTitle.toLowerCase();
-  const originalContentLower = originalContent.toLowerCase();
-
-  // 检查标题
-  const titleMatch = originalTitleLower.split(' ').some(word => responseContent.includes(word));
-
-  // 检查内容
-  const contentWords = originalContentLower.split(/\s+/).filter(word => word.length > 3);
-  const contentMatchCount = contentWords.filter(word => responseContent.includes(word)).length;
-  const contentMatchRatio = contentMatchCount / contentWords.length;
-
-  console.log('验证结果:', {
-    titleMatch,
-    contentMatchRatio,
-    contentMatchCount,
-    totalContentWords: contentWords.length
-  });
-
-  // 放宽验证条件
-  return titleMatch && contentMatchRatio > 0.1; // 只要有 10% 的内容匹配就认为是有效的
 }

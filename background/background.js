@@ -3,7 +3,7 @@ import { sendToOllama } from './content-processor.js';
 let socket;
 
 export function connectWebSocket() {
-  socket = new WebSocket('ws://localhost:3000');
+  socket = new WebSocket('ws://localhost:3001');
 
   socket.onopen = () => {
     console.log('WebSocket 连接已建立');
@@ -16,7 +16,7 @@ export function connectWebSocket() {
 
   socket.onclose = () => {
     console.log('WebSocket 连接已关闭');
-    // 可以在这里添加重连逻辑
+    setTimeout(connectWebSocket, 5000); // 5秒后尝试重连
   };
 
   socket.onerror = (error) => {
@@ -32,14 +32,14 @@ export function runOllamaModel(content, obsidianPath, title, url) {
     }
 
     console.log(`尝试运行 Ollama 模型 qwen2:7b,内容长度: ${content.length}`);
-    console.log('传递的 URL:', url); // 添加这行来检查 URL
+    console.log('传递的 URL:', url || 'https://example.com'); // 提供默认URL
 
     const message = JSON.stringify({
       model: 'qwen2:7b',
       prompt: content,
       obsidianPath: obsidianPath,
       title: title,
-      url: url
+      url: url || 'https://example.com' // 使用默认URL
     });
 
     socket.send(message);
@@ -85,9 +85,30 @@ export function injectContentScript(tabId, retry = 0) {
 
 export function testOllamaService(tabId) {
   console.log("开始测试 Ollama 服务");
-  runOllamaModel("Hello, Ollama!")
-    .then(() => {
+  const testPrompt = `
+请根据以下内容,按照指定格式回答:
+
+原文标题: 测试标题
+文章链接: https://example.com
+文章内容: 这是一个测试内容。
+
+请按照以下格式回答:
+文章类型: [类型]
+文章总结: [总结]
+标签: [标签1], [标签2], [标签3]
+亮点内容:
+1. [亮点1]
+2. [亮点2]
+3. [亮点3]
+主要涉及的人物、作品或概念:
+1. [概念1]
+2. [概念2]
+3. [概念3]
+`;
+  runOllamaModel(testPrompt, "/test/path", "测试标题", "https://example.com")
+    .then((response) => {
       console.log("Ollama 服务测试成功");
+      console.log("测试响应:", response);
       chrome.tabs.sendMessage(tabId, { action: "processArticle" });
     })
     .catch((error) => {
@@ -96,7 +117,7 @@ export function testOllamaService(tabId) {
     });
 }
 
-// 事件监听器
+// 件监听器
 chrome.runtime.onInstalled.addListener(() => {
   connectWebSocket();
 });

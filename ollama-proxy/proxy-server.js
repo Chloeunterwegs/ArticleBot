@@ -4,7 +4,7 @@ import http from 'http';
 import fs from 'fs/promises';
 import path from 'path';
 
-const wss = new WebSocketServer({ port: 3000 });
+const wss = new WebSocketServer({ port: 3001 });
 
 function checkOllamaHealth() {
   http.get('http://localhost:11434/', (res) => {
@@ -76,56 +76,46 @@ wss.on('connection', (ws) => {
 
       let result;
       try {
-        result = await response.json();
+        const responseText = await response.text(); // 先获取响应文本
+        result = JSON.parse(responseText); // 然后解析 JSON
         console.log('Ollama API 响应:', result);
         
         if (result.message && result.message.content) {
           const ollamaResponse = result.message.content.trim();
           console.log('Ollama 完整响应:', ollamaResponse);
           
-          // 检查是否包含所需的所有部分，并且格式正确
-          if (ollamaResponse.includes("文章类型:") &&
-              ollamaResponse.includes("文章总结:") && 
-              ollamaResponse.includes("标签:") && 
-              ollamaResponse.includes("亮点内容:") && 
-              ollamaResponse.includes("主要涉及的人物、作品或概念:")) {
-            
-            // 在响应开头添加原文链接和文章标题
-            const processedResponse = `原文链接: ${url}\n文章标题: ${title}\n\n${ollamaResponse}`;
-            
-            // 直接发送处理后的 Ollama 响应
-            ws.send(JSON.stringify({ result: processedResponse }));
-            
-            // 处理文件名
-            const safeTitle = title
-              .replace(/[<>:"/\\|?*]/g, '') // 移除不允许的字符
-              .replace(/\s+/g, '_')         // 将空格替换为下划线
-              .replace(/[^\x00-\x7F]/g, '') // 移除非ASCII字符
-              .trim();
-            
-            // 如果处理后的标题为空，使用时间戳作为文件名
-            const fileName = safeTitle || `article_${Date.now()}`;
-            
-            // 限制文件名长度
-            const maxLength = 255; // 大多数文件系统的最大文件名长度
-            const truncatedFileName = fileName.length > maxLength ? fileName.slice(0, maxLength) : fileName;
-            
-            // 将完整响应写入 Obsidian 文件，包括原始标题
-            const contentToWrite = `# ${title}\n\n${processedResponse}`;
-            const obsidianFilePath = path.join(obsidianPath, `${truncatedFileName}.md`);
-            await fs.writeFile(obsidianFilePath, contentToWrite, 'utf8');
-            console.log(`内容已写入 Obsidian 文件: ${obsidianFilePath}`);
-          } else {
-            console.error('Ollama 响应格式不符合预期');
-            ws.send(JSON.stringify({ error: 'Ollama 响应格式不符合预期' }));
-          }
+          // 直接使用 Ollama 的响应,不进行额外的修改
+          const processedResponse = ollamaResponse;
+          
+          // 直接发送 Ollama 的原始响应
+          ws.send(JSON.stringify({ result: processedResponse }));
+          
+          // 处理文件名
+          const safeTitle = title
+            .replace(/[<>:"/\\|?*]/g, '') // 移除不允许的字符
+            .replace(/\s+/g, '_')         // 将空格替换为下划线
+            .replace(/[^\x00-\x7F]/g, '') // 移除非ASCII字符
+            .trim();
+          
+          // 如果处理后的标题为空，使用时间戳作为文件名
+          const fileName = safeTitle || `article_${Date.now()}`;
+          
+          // 限制文件名长度
+          const maxLength = 255; // 大多数文件系统的最大文件名长度
+          const truncatedFileName = fileName.length > maxLength ? fileName.slice(0, maxLength) : fileName;
+          
+          // 将 Ollama 的原始响应写入 Obsidian 文件
+          const contentToWrite = `# ${title}\n\n${processedResponse}`;
+          const obsidianFilePath = path.join(obsidianPath, `${truncatedFileName}.md`);
+          await fs.writeFile(obsidianFilePath, contentToWrite, 'utf8');
+          console.log(`内容已写入 Obsidian 文件: ${obsidianFilePath}`);
         } else {
-          console.error('未知的响应格式');
-          ws.send(JSON.stringify({ error: '未知的响应格式' }));
+          console.warn('Ollama 响应格式不符合预期');
+          ws.send(JSON.stringify({ error: 'Ollama 响应格式不符合预期' }));
         }
       } catch (jsonError) {
         console.error('解析 Ollama API 响应时发生错误:', jsonError);
-        console.error('原始响应:', await response.text());
+        console.error('原始响应:', responseText); // 使用之前保存的响应文本
         ws.send(JSON.stringify({ error: `解析 Ollama API 响应失败: ${jsonError.message}` }));
       }
     } catch (error) {
@@ -135,4 +125,4 @@ wss.on('connection', (ws) => {
   });
 });
 
-console.log('WebSocket 服务器正在监听端口 3000');
+console.log('WebSocket 服务器正在监听端口 3001');
