@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "智能文章助手",
-  "version": "0.0.6",
-  "description": "一键完成文章总结、标签生成、并同步到Obsidian，支持多标签页自动化操作",
+  "version": "1.0.0",
+  "description": "一键完成对单个或多个标签页文章总结、标签生成，并同步内容到 Obsidian。支持多种模型选择和自定义存储路径。",
   "permissions": [
     "activeTab",
     "scripting",
@@ -30,7 +30,7 @@
       "48": "/icons/icon48.png",
       "128": "/icons/icon128.png"
     },
-    "default_title": "智能文章助手"
+    "default_title": "ArticleBot"
   },
   "options_page": "popup/popup.html",
   "web_accessible_resources": [
@@ -42,8 +42,8 @@
   "commands": {
     "stop_processing": {
       "suggested_key": {
-        "default": "Ctrl+Shift+W",
-        "mac": "Command+Shift+W"
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
       },
       "description": "停止处理标签页"
     },

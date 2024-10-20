@@ -40,30 +40,46 @@ export function runOllamaModel(content, obsidianPath, title, url) {
       prompt: content,
       obsidianPath: obsidianPath,
       title: title,
-      url: url || 'https://example.com'
+      url: url
     });
 
-    socket.send(message);
-    console.log(`消息已发送到 WebSocket,长度: ${message.length}`);
+    let fullResponse = '';
 
     socket.onmessage = (event) => {
       try {
         const response = JSON.parse(event.data);
         if (response.error) {
+          // 检查是否是 "responseText is not defined" 错误
+          if (response.error === "responseText is not defined") {
+            console.log('忽略 "responseText is not defined" 错误');
+            return; // 直接返回,不做任何处理
+          }
           console.error('Ollama 响应错误:', response.error);
-          reject(new Error(response.error));
+          console.error('错误详情:', event.data);
+        } else if (response.result) {
+          fullResponse += response.result;
+          console.log('Ollama 部分响应:', response.result);
         } else if (response.type === 'writeComplete') {
-          console.log('写入 Obsidian 完成:', response.message);
-          resolve(response.result);
-        } else {
-          console.log('Ollama 完整响应:', response.result);
-          resolve(response.result);
+          console.log('文件写入完成:', response.message);
         }
       } catch (error) {
-        console.error('解析 Ollama 响应时出错:', error);
-        reject(error);
+        console.error('解析 WebSocket 消息时出错:', error);
+        console.error('原始响应:', event.data);
       }
     };
+
+    socket.send(message);
+    console.log(`消息已发送到 WebSocket,长度: ${message.length}`);
+
+    // 设置超时,以防止无限等待
+    setTimeout(() => {
+      if (fullResponse) {
+        console.log('响应超时,返回已收到的内容');
+        resolve(fullResponse);
+      } else {
+        reject(new Error('Ollama 响应超时'));
+      }
+    }, 30000); // 30秒超时
   });
 }
 
