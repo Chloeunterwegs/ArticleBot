@@ -78,7 +78,8 @@ export function injectContentScript(tabId, retry = 0) {
         console.log(`尝试重新注入内容脚本 (${retry + 1}/3)...`);
         setTimeout(() => injectContentScript(tabId, retry + 1), 1000);
       } else {
-        console.error("内容脚本注入失败,请检查文件路径和权限设置");
+        console.error("内容脚本注入失败,跳过此标签页");
+        onTabProcessed(tabId); // 跳过此标签页并继续处理下一个
       }
     } else {
       console.log("内容脚本已成功注入");
@@ -99,7 +100,7 @@ export function testOllamaService(tabId) {
 请按照以下格式回答:
 文章链接：[链接]
 文章类型: [类型]
-文章总结: [总结]
+TL;DR: [文章摘要]
 标签: [标签1], [标签2], [标签3]
 亮点内容:
 1. [亮点1]
@@ -109,7 +110,7 @@ export function testOllamaService(tabId) {
 1. [概念1]
 2. [概念2]
 3. [概念3]
-可发散内容：
+思考：
 1. [可发散内容1]
 2. [可发散内容2]
 3. [可发散内容3]
@@ -137,9 +138,9 @@ chrome.action.onClicked.addListener((tab) => {
   processCurrentTab();
 });
 
-// 添加这个新函数
+// 修改这个函数
 function processCurrentTab() {
-  chrome.windows.getCurrent({populate: true}, (window) => {
+  chrome.windows.getLastFocused({populate: true}, (window) => {
     const activeTab = window.tabs.find(tab => tab.active);
     if (activeTab) {
       chrome.storage.sync.get(['obsidianPath'], function(result) {
@@ -189,7 +190,7 @@ chrome.commands.onCommand.addListener((command) => {
       stopTabProcessing();
     } else if (command === "process_all_tabs") {
       console.log("开始处理所有标签页");
-      chrome.windows.getCurrent({populate: true}, (window) => {
+      chrome.windows.getLastFocused({populate: true}, (window) => {
         startTabProcessing(window.tabs);
       });
     }

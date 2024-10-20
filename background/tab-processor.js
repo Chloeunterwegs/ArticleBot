@@ -11,7 +11,7 @@ export function startTabProcessing(tabs) {
   }
 
   tabQueue = tabs.filter(tab => {
-    return tab && tab.url && (tab.url.startsWith('http') || tab.url.startsWith('https'));
+    return tab && tab.url && (tab.url.startsWith('http') || tab.url.startsWith('https')) && !tab.url.includes('chrome://') && !tab.url.includes('chrome-extension://');
   });
 
   if (tabQueue.length > 0) {

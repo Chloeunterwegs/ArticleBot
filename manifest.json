@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "智能文章助手",
   "version": "0.0.6",
-  "description": "一键完成文章总结、标签生成、并同步到Obsidian",
+  "description": "一键完成文章总结、标签生成、并同步到Obsidian，支持多标签页自动化操作",
   "permissions": [
     "activeTab",
     "scripting",
